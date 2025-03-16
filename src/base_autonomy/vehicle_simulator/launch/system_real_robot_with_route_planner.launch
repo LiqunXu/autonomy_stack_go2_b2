@@ -19,7 +19,7 @@
   </node> -->
 
   <include file="$(find-pkg-share point_lio_unilidar)/launch/mapping_utlidar.launch">
-    <arg name="rviz" value="false"/>
+    <arg name="rviz" value="true"/>
   </include>
 
   <include file="$(find-pkg-share local_planner)/launch/local_planner.launch" >
@@ -38,15 +38,15 @@
 
   <!-- <include file="$(find-pkg-share sensor_scan_generation)/launch/sensor_scan_generation.launch" /> -->
 
-  <!-- <include file="$(find-pkg-share visualization_tools)/launch/visualization_tools.launch" >
+  <include file="$(find-pkg-share visualization_tools)/launch/visualization_tools.launch" >
     <arg name="world_name" value="$(var world_name)"/>
-  </include> -->
+  </include>
 
   <include file="$(find-pkg-share far_planner)/launch/far_planner.launch" />
 
   <!-- <node launch-prefix="nice" pkg="rviz2" exec="rviz2" name="rvizGA" args="-d $(find-pkg-share vehicle_simulator)/rviz/vehicle_simulator.rviz"/> -->
 
-  <node pkg="tf2_ros" exec="static_transform_publisher" name="loamInterfaceTransPubMap" args="0 0 0 0 0 0 /map /camera_init"/>
+  <node pkg="tf2_ros" exec="static_transform_publisher" name="loamInterfaceTransPubMap" args="27.7 -45 1.5 0 0 0 /map /camera_init"/>
 
   <node pkg="tf2_ros" exec="static_transform_publisher" name="loamInterfaceTransPubVehicle" args="0 0 0 0 0 0 /aft_mapped /sensor"/>
   
