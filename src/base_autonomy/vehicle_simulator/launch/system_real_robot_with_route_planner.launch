@@ -38,9 +38,9 @@
 
   <!-- <include file="$(find-pkg-share sensor_scan_generation)/launch/sensor_scan_generation.launch" /> -->
 
-  <include file="$(find-pkg-share visualization_tools)/launch/visualization_tools.launch" >
+  <!-- <include file="$(find-pkg-share visualization_tools)/launch/visualization_tools.launch" >
     <arg name="world_name" value="$(var world_name)"/>
-  </include>
+  </include> -->
 
   <include file="$(find-pkg-share far_planner)/launch/far_planner.launch" />
 
