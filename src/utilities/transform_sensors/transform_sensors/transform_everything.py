@@ -19,8 +19,8 @@ import os
 class Repuber(Node):
     def __init__(self):
         super().__init__('sensor_transformer')
-        self.imu_sub = self.create_subscription(Imu, '/utlidar/imu', self.imu_callback, 50)
-        self.cloud_sub = self.create_subscription(PointCloud2, '/utlidar/cloud', self.cloud_callback, 50)
+        self.imu_sub = self.create_subscription(Imu, '/unilidar/imu', self.imu_callback, 50)
+        self.cloud_sub = self.create_subscription(PointCloud2, '/unilidar/cloud', self.cloud_callback, 50)
         
         self.imu_raw_pub = self.create_publisher(Imu, '/utlidar/transformed_raw_imu', 50)
         self.imu_pub = self.create_publisher(Imu, '/utlidar/transformed_imu', 50)
@@ -66,7 +66,7 @@ class Repuber(Node):
         self.body2cloud_trans = TransformStamped()
         self.body2cloud_trans.header.stamp = self.get_clock().now().to_msg()
         self.body2cloud_trans.header.frame_id = "body"
-        self.body2cloud_trans.child_frame_id = "utlidar_lidar_1"
+        self.body2cloud_trans.child_frame_id = "unilidar_lidar"
         self.body2cloud_trans.transform.translation.x = 0.0
         self.body2cloud_trans.transform.translation.y = 0.0
         self.body2cloud_trans.transform.translation.z = 0.0
@@ -79,7 +79,7 @@ class Repuber(Node):
         self.body2imu_trans = TransformStamped()
         self.body2imu_trans.header.stamp = self.get_clock().now().to_msg()
         self.body2imu_trans.header.frame_id = "body"
-        self.body2imu_trans.child_frame_id = "utlidar_imu_1"
+        self.body2imu_trans.child_frame_id = "unilidar_imu"
         self.body2imu_trans.transform.translation.x = 0.0
         self.body2imu_trans.transform.translation.y = 0.0
         self.body2imu_trans.transform.translation.z = 0.0

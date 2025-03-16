@@ -48,6 +48,7 @@
 
   <node pkg="tf2_ros" exec="static_transform_publisher" name="loamInterfaceTransPubMap" args="0 0 0 0 0 0 /map /camera_init"/>
 
+  <!-- /aft_mapped-robot’s pose (determined by LiDAR odometry) -->
   <node pkg="tf2_ros" exec="static_transform_publisher" name="loamInterfaceTransPubVehicle" args="0 0 0 0 0 0 /aft_mapped /sensor"/>
   
 </launch>
