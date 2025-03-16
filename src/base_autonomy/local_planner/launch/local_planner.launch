@@ -15,7 +15,7 @@
 
   <node pkg="local_planner" exec="localPlanner" name="localPlanner" output="screen">
     <param name="pathFolder" value="$(find-pkg-share local_planner)/paths" />
-    <param name="vehicleLength" value="0.3" />
+    <param name="vehicleLength" value="1.2" />
     <param name="vehicleWidth" value="0.7" />
     <param name="sensorOffsetX" value="$(var sensorOffsetX)" />
     <param name="sensorOffsetY" value="$(var sensorOffsetY)" />
