@@ -9,7 +9,6 @@ import sensor_msgs_py.point_cloud2 as pc2
 import tf_transformations
 
 
-
 from transforms3d.quaternions import quat2mat
 
 from copy import deepcopy
@@ -216,7 +215,7 @@ class Repuber(Node):
 
         transformed_imu = Imu()
         transformed_imu.header.stamp = data.header.stamp
-        transformed_imu.header.frame_id = 'vehicle'
+        transformed_imu.header.frame_id = 'body'
         transformed_imu.orientation.x = transformed_orientation[0]
         transformed_imu.orientation.y = transformed_orientation[1]
         transformed_imu.orientation.z = transformed_orientation[2]
