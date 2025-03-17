@@ -160,7 +160,7 @@ int main(int argc, char** argv)
     auto pubGo2Request = nh->create_publisher<unitree_api::msg::Request>("/api/sport/request", 10);
     auto pubSpeed = nh->create_publisher<geometry_msgs::msg::TwistStamped>("/cmd_vel", 5); // Debug purpose
 
-    auto subImu = nh->create_subscription<sensor_msgs::msg::Imu>("/utlidar/imu", 300,  imu_handler);
+    auto subImu = nh->create_subscription<sensor_msgs::msg::Imu>("/unilidar/imu", 300,  imu_handler);
 
     geometry_msgs::msg::TwistStamped cmd_vel;
     cmd_vel.header.frame_id = "vehicle";
