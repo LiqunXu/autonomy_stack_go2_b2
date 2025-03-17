@@ -222,7 +222,7 @@
 
 #         transformed_imu = Imu()
 #         transformed_imu.header.stamp = data.header.stamp
-#         transformed_imu.header.frame_id = 'body'
+#         transformed_imu.header.frame_id = 'vehicle'
 #         transformed_imu.orientation.x = transformed_orientation[0]
 #         transformed_imu.orientation.y = transformed_orientation[1]
 #         transformed_imu.orientation.z = transformed_orientation[2]
@@ -281,10 +281,10 @@ from sensor_msgs.msg import Imu, PointCloud2
 from geometry_msgs.msg import TransformStamped, Vector3
 import sensor_msgs_py.point_cloud2 as pc2
 import tf_transformations
-
 from tf2_ros import TransformBroadcaster
-from transforms3d.quaternions import quat2mat
 
+from transforms3d.quaternions import quat2mat
+from copy import deepcopy
 import numpy as np
 import yaml
 import os
@@ -294,7 +294,7 @@ class Repuber(Node):
     def __init__(self):
         super().__init__('sensor_transformer')
         
-        # Initialize TF Broadcaster
+        # Create TF Broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
 
         # Subscribe to IMU and PointCloud2 topics
@@ -314,7 +314,7 @@ class Repuber(Node):
         # Define Transform Frames
         self.create_transforms()
 
-        # Start publishing transforms at 10Hz
+        # Start publishing transforms every 0.1 seconds
         self.timer = self.create_timer(0.1, self.publish_tf_transforms)
 
     def load_calibration(self):
@@ -339,6 +339,9 @@ class Repuber(Node):
         self.ang_z2x_proj, self.ang_z2y_proj = calib_data['ang_z2x_proj'], calib_data['ang_z2y_proj']
 
     def create_transforms(self):
+        """ Create fixed transformations. """
+        quat = tf_transformations.quaternion_from_euler(3.14159265358, 0, 0)
+
         # **Vehicle to Lidar Transform**
         self.vehicle_to_lidar_trans = TransformStamped()
         self.vehicle_to_lidar_trans.header.frame_id = "vehicle"
@@ -346,7 +349,6 @@ class Repuber(Node):
         self.vehicle_to_lidar_trans.transform.translation.x = 0.0
         self.vehicle_to_lidar_trans.transform.translation.y = 0.0
         self.vehicle_to_lidar_trans.transform.translation.z = 0.0
-        quat = tf_transformations.quaternion_from_euler(3.14159265358, 0, 0)
         self.vehicle_to_lidar_trans.transform.rotation.x = quat[0]
         self.vehicle_to_lidar_trans.transform.rotation.y = quat[1]
         self.vehicle_to_lidar_trans.transform.rotation.z = quat[2]
@@ -365,7 +367,8 @@ class Repuber(Node):
         self.vehicle_to_imu_trans.transform.rotation.w = quat[3]
 
     def publish_tf_transforms(self):
-        # Update timestamps before publishing
+        """ Publish transforms every 0.1s. """
+        # Update timestamps
         self.vehicle_to_lidar_trans.header.stamp = self.get_clock().now().to_msg()
         self.vehicle_to_imu_trans.header.stamp = self.get_clock().now().to_msg()
 
