@@ -65,7 +65,7 @@ class Repuber(Node):
                 
         self.body2cloud_trans = TransformStamped()
         self.body2cloud_trans.header.stamp = self.get_clock().now().to_msg()
-        self.body2cloud_trans.header.frame_id = "body"
+        self.body2cloud_trans.header.frame_id = "vehicle"
         self.body2cloud_trans.child_frame_id = "unilidar_lidar"
         self.body2cloud_trans.transform.translation.x = 0.0
         self.body2cloud_trans.transform.translation.y = 0.0
@@ -78,7 +78,7 @@ class Repuber(Node):
         
         self.body2imu_trans = TransformStamped()
         self.body2imu_trans.header.stamp = self.get_clock().now().to_msg()
-        self.body2imu_trans.header.frame_id = "body"
+        self.body2imu_trans.header.frame_id = "vehicle"
         self.body2imu_trans.child_frame_id = "unilidar_imu"
         self.body2imu_trans.transform.translation.x = 0.0
         self.body2imu_trans.transform.translation.y = 0.0
@@ -138,7 +138,7 @@ class Repuber(Node):
         
         elevated_cloud = pc2.create_cloud(data.header, data.fields, transformed_points)
         elevated_cloud.header.stamp = Time(nanoseconds=Time.from_msg(elevated_cloud.header.stamp).nanoseconds + self.time_stamp_offset).to_msg()
-        elevated_cloud.header.frame_id = "body"
+        elevated_cloud.header.frame_id = "vehicle"
         elevated_cloud.is_dense = data.is_dense
 
         self.cloud_pub.publish(elevated_cloud)
@@ -212,7 +212,7 @@ class Repuber(Node):
 
         transformed_imu = Imu()
         transformed_imu.header.stamp = data.header.stamp
-        transformed_imu.header.frame_id = 'body'
+        transformed_imu.header.frame_id = 'vehicle'
         transformed_imu.orientation.x = transformed_orientation[0]
         transformed_imu.orientation.y = transformed_orientation[1]
         transformed_imu.orientation.z = transformed_orientation[2]
