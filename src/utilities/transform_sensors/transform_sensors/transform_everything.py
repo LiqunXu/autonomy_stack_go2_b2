@@ -82,7 +82,7 @@ class Repuber(Node):
         self.body2imu_trans = TransformStamped()
         self.body2imu_trans.header.stamp = self.get_clock().now().to_msg()
         self.body2imu_trans.header.frame_id = "body"
-        self.body2imu_trans.child_frame_id = "unilidar_imu"
+        self.body2imu_trans.child_frame_id = "unilidar_imu_initial"
         self.body2imu_trans.transform.translation.x = 0.0
         self.body2imu_trans.transform.translation.y = 0.0
         self.body2imu_trans.transform.translation.z = 0.0
@@ -91,7 +91,8 @@ class Repuber(Node):
         self.body2imu_trans.transform.rotation.y = quat[1]
         self.body2imu_trans.transform.rotation.z = quat[2]
         self.body2imu_trans.transform.rotation.w = quat[3]
-        
+
+        # Defines a bounding box to filter out points outside this range.
         self.x_filter_min = -0.7
         self.x_filter_max = -0.1
         self.y_filter_min = -0.3
