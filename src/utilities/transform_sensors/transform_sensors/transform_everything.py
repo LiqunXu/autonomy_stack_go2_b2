@@ -180,7 +180,7 @@ class Repuber(Node):
         y = -data.angular_velocity.y
         z = -data.angular_velocity.z
         
-        theta = 15.1 / 180 * 3.1415926
+        theta = 0 / 180 * 3.1415926
 
         x2 = np.cos(theta) * x - np.sin(theta) * z
         y2 = y
