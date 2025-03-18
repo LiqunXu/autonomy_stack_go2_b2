@@ -91,7 +91,7 @@
   </node>
 
   <!-- fixed relationship between the /sensor and /vehicle coordinate frames, /sensor-Parent Frame (the reference frame), /vehicle-Child Frame (the frame being transformed) -->
-  <node pkg="tf2_ros" exec="static_transform_publisher" name="vehicleTransPublisher" args="-$(var sensorOffsetX) -$(var sensorOffsetY) 0 3.14159265358 0 0 /sensor /vehicle"/>
+  <node pkg="tf2_ros" exec="static_transform_publisher" name="vehicleTransPublisher" args="-$(var sensorOffsetX) -$(var sensorOffsetY) 0 0 0 0 /sensor /vehicle"/>
 
   <node pkg="tf2_ros" exec="static_transform_publisher" name="sensorTransPublisher" args="0 0 $(var cameraOffsetZ) -1.5707963 0 -1.5707963 /sensor /camera"/>
   

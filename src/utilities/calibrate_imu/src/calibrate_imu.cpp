@@ -30,7 +30,7 @@ double ang_z2y_proj = 0;
 
 void imu_handler(const sensor_msgs::msg::Imu::ConstSharedPtr msg_in)
 {
-    double theta = 15.1 / 180 * 3.1415926; // Convert it to z-up
+    double theta = 0 / 180 * 3.1415926; // Convert it to z-up
 
     double x = msg_in->angular_velocity.x;
     double y = -msg_in->angular_velocity.y;
