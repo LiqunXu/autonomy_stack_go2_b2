@@ -85,18 +85,18 @@ class Repuber(Node):
         # self.body2cloud_trans.transform.rotation.z = quat[2]
         # self.body2cloud_trans.transform.rotation.w = quat[3]
         
-        self.body2imu_trans = TransformStamped()
-        self.body2imu_trans.header.stamp = self.get_clock().now().to_msg()
-        self.body2imu_trans.header.frame_id = "body"
-        self.body2imu_trans.child_frame_id = "unilidar_imu_initial"
-        self.body2imu_trans.transform.translation.x = 0.0
-        self.body2imu_trans.transform.translation.y = 0.0
-        self.body2imu_trans.transform.translation.z = 0.0
-        quat = tf_transformations.quaternion_from_euler(0, 0, 0)
-        self.body2imu_trans.transform.rotation.x = quat[0]
-        self.body2imu_trans.transform.rotation.y = quat[1]
-        self.body2imu_trans.transform.rotation.z = quat[2]
-        self.body2imu_trans.transform.rotation.w = quat[3]
+        # self.body2imu_trans = TransformStamped()
+        # self.body2imu_trans.header.stamp = self.get_clock().now().to_msg()
+        # self.body2imu_trans.header.frame_id = "body"
+        # self.body2imu_trans.child_frame_id = "unilidar_imu_initial"
+        # self.body2imu_trans.transform.translation.x = 0.0
+        # self.body2imu_trans.transform.translation.y = 0.0
+        # self.body2imu_trans.transform.translation.z = 0.0
+        # quat = tf_transformations.quaternion_from_euler(0, 0, 0)
+        # self.body2imu_trans.transform.rotation.x = quat[0]
+        # self.body2imu_trans.transform.rotation.y = quat[1]
+        # self.body2imu_trans.transform.rotation.z = quat[2]
+        # self.body2imu_trans.transform.rotation.w = quat[3]
 
         # ----------------------------------------
         # Publish these frames once as "static" TF
@@ -104,7 +104,7 @@ class Repuber(Node):
         # If these transforms never change, call sendTransform() once.
         # If they do change, you'd broadcast them continuously.
         
-        self.tf_static_broadcaster.sendTransform([self.body2imu_trans])
+        # self.tf_static_broadcaster.sendTransform([self.body2imu_trans])
 
         # Defines a bounding box to filter out points outside this range.
         self.x_filter_min = -0.7
