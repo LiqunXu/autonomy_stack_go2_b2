@@ -50,8 +50,8 @@ class Repuber(Node):
                 'ang_bias_x': 0.0,
                 'ang_bias_y': 0.0,
                 'ang_bias_z': 0.0,
-                'ang_z2x_proj': 0.15,
-                'ang_z2y_proj': -0.28
+                'ang_z2x_proj': 0.0,
+                'ang_z2y_proj': 0.0
             }
         try:
             home_path = os.path.expanduser('~')
@@ -103,9 +103,6 @@ class Repuber(Node):
         # ----------------------------------------
         # If these transforms never change, call sendTransform() once.
         # If they do change, you'd broadcast them continuously.
-        now = self.get_clock().now().to_msg()
-        self.body2cloud_trans.header.stamp = now
-        self.body2imu_trans.header.stamp   = now
         
         self.tf_static_broadcaster.sendTransform([self.body2cloud_trans,
                                                   self.body2imu_trans])
