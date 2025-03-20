@@ -7,6 +7,7 @@ from sensor_msgs.msg import PointCloud2, PointField
 from geometry_msgs.msg import TransformStamped, Vector3
 import sensor_msgs_py.point_cloud2 as pc2
 import tf_transformations
+from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
 
 
 from transforms3d.quaternions import quat2mat
@@ -20,6 +21,11 @@ import os
 class Repuber(Node):
     def __init__(self):
         super().__init__('sensor_transformer')
+
+        # -----------------------------
+        # Create static broadcaster
+        # -----------------------------
+        self.tf_static_broadcaster = StaticTransformBroadcaster(self)
         
         
         self.imu_sub = self.create_subscription(Imu, '/unilidar/imu', self.imu_callback, 50)
@@ -86,11 +92,23 @@ class Repuber(Node):
         self.body2imu_trans.transform.translation.x = 0.0
         self.body2imu_trans.transform.translation.y = 0.0
         self.body2imu_trans.transform.translation.z = 0.0
-        quat = tf_transformations.quaternion_from_euler(0, 0, 0)
+        quat = tf_transformations.quaternion_from_euler(3.14159265358, 0, 0)
         self.body2imu_trans.transform.rotation.x = quat[0]
         self.body2imu_trans.transform.rotation.y = quat[1]
         self.body2imu_trans.transform.rotation.z = quat[2]
         self.body2imu_trans.transform.rotation.w = quat[3]
+
+        # ----------------------------------------
+        # Publish these frames once as "static" TF
+        # ----------------------------------------
+        # If these transforms never change, call sendTransform() once.
+        # If they do change, you'd broadcast them continuously.
+        now = self.get_clock().now().to_msg()
+        self.body2cloud_trans.header.stamp = now
+        self.body2imu_trans.header.stamp   = now
+        
+        self.tf_static_broadcaster.sendTransform([self.body2cloud_trans,
+                                                  self.body2imu_trans])
 
         # Defines a bounding box to filter out points outside this range.
         self.x_filter_min = -0.7
