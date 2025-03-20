@@ -2,6 +2,8 @@
 	<!-- Launch file for Unitree L1 LiDAR mounted on Go2 -->
 	<arg name="rviz" default="true" />
 
+	<node pkg="tf2_ros" exec="static_transform_publisher" name="loamInterfaceTransUnilidare" args="0 0 0 0 0 0 /aft_mapped /body"/>
+
 	<node pkg="transform_sensors" exec="transform_everything" name="transform_everything" output="screen" />
 
 	<node pkg="point_lio_unilidar" exec="pointlio_mapping" name="laserMapping" output="screen">
