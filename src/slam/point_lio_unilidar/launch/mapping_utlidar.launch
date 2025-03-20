@@ -35,6 +35,6 @@
 		<node launch-prefix="nice" pkg="rviz2" exec="rviz2" name="rviz" args="-d $(find-pkg-share point_lio_unilidar)/rviz_cfg/loam_livox2.rviz"/>
 	</group>
 	<node pkg="tf2_ros" exec="static_transform_publisher" name="bodyTransUnilidar" args="0 0 0 0 0 0 /body /unilidar_imu_initial"/>
-	<node pkg="tf2_ros" exec="static_transform_publisher" name="loamInterfaceTransUnilidare" args="0 0 0 0 0 0 /aft_mapped /body"/>
+	<!-- <node pkg="tf2_ros" exec="static_transform_publisher" name="loamInterfaceTransUnilidare" args="0 0 0 0 0 0 /aft_mapped /body"/> -->
 
 </launch>
