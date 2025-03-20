@@ -8,7 +8,7 @@
 
 	<node pkg="transform_sensors" exec="transform_everything" name="transform_everything" output="screen" />
 
-	<node pkg="tf2_ros" exec="static_transform_publisher" name="bodyTransUnilidar" args="0 0 0 0 0 0 /body /unilidar_imu"/>
+	<node pkg="tf2_ros" exec="static_transform_publisher" name="bodyTransUnilidar" args="0 0 0 0 0 0 /body /unilidar_imu_initial"/>
 
 	<node pkg="point_lio_unilidar" exec="pointlio_mapping" name="laserMapping" output="screen">
 		<param from="$(find-pkg-share point_lio_unilidar)/config/utlidar.yaml" />
