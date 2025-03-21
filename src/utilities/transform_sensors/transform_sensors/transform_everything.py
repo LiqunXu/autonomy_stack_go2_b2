@@ -31,7 +31,7 @@ class Repuber(Node):
         self.time_stamp_offset = 0
         self.time_stamp_offset_set = False
         
-        self.cam_offset = 0.046825
+        self.cam_offset = 0.0
 
         # Load calibration data
         calib_data = calib_data = {
