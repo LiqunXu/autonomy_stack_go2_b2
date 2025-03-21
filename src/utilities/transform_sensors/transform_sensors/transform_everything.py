@@ -89,12 +89,12 @@ class Repuber(Node):
         self.body2imu_trans.transform.rotation.z = quat[2]
         self.body2imu_trans.transform.rotation.w = quat[3]
         
-        self.x_filter_min = -0.7
+        self.x_filter_min = -1.0
         self.x_filter_max = -0.1
         self.y_filter_min = -0.3
         self.y_filter_max = 0.3
         self.z_filter_min = -0.6 - self.cam_offset
-        self.z_filter_max = 0 - self.cam_offset
+        self.z_filter_max = 0.1 - self.cam_offset
 
         rclpy.spin(self)
                 
