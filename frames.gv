@@ -1,0 +1,14 @@
+digraph G {
+"camera_init" -> "aft_mapped"[label=" Broadcaster: default_authority\nAverage rate: 7042.938\nBuffer length: 1.14\nMost recent transform: 1742532521.059739\nOldest transform: 1742532519.920158\n"];
+"map" -> "camera_init"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"aft_mapped" -> "body"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"sensor" -> "camera"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"aft_mapped" -> "sensor"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"unilidar_imu" -> "unilidar_lidar"[label=" Broadcaster: default_authority\nAverage rate: 227.717\nBuffer length: 4.993\nMost recent transform: 1742532548.609884\nOldest transform: 1742532543.616845\n"];
+"unilidar_imu_initial" -> "unilidar_imu"[label=" Broadcaster: default_authority\nAverage rate: 235.423\nBuffer length: 4.991\nMost recent transform: 1742532548.610861\nOldest transform: 1742532543.619847\n"];
+"sensor" -> "vehicle"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1742532548.6387823"[ shape=plaintext ] ;
+}->"unilidar_imu_initial";
+}
