@@ -80,14 +80,14 @@ class Repuber(Node):
         self.body2imu_trans.header.stamp = self.get_clock().now().to_msg()
         self.body2imu_trans.header.frame_id = "body"
         self.body2imu_trans.child_frame_id = "unilidar_imu"
-        self.body2imu_trans.transform.translation.x = 0.0
-        self.body2imu_trans.transform.translation.y = 0.0
-        self.body2imu_trans.transform.translation.z = 0.0
-        quat = tf_transformations.quaternion_from_euler(0, 0, 0)
-        self.body2imu_trans.transform.rotation.x = quat[0]
-        self.body2imu_trans.transform.rotation.y = quat[1]
-        self.body2imu_trans.transform.rotation.z = quat[2]
-        self.body2imu_trans.transform.rotation.w = quat[3]
+        # self.body2imu_trans.transform.translation.x = 0.0
+        # self.body2imu_trans.transform.translation.y = 0.0
+        # self.body2imu_trans.transform.translation.z = 0.0
+        # quat = tf_transformations.quaternion_from_euler(0, 0, 0)
+        # self.body2imu_trans.transform.rotation.x = quat[0]
+        # self.body2imu_trans.transform.rotation.y = quat[1]
+        # self.body2imu_trans.transform.rotation.z = quat[2]
+        # self.body2imu_trans.transform.rotation.w = quat[3]
         
         self.x_filter_min = -1.0
         self.x_filter_max = -0.1
