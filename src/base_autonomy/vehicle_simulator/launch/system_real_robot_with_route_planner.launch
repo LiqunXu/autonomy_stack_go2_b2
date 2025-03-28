@@ -8,6 +8,10 @@
   <arg name="vehicleX" default="0.0"/>
   <arg name="vehicleY" default="0.0"/>
   <arg name="checkTerrainConn" default="true"/>
+  <arg name="minRelZ" default="-1.0"/>
+  <arg name="maxRelZ" default="0.5"/>
+  <arg name="lowerBoundZ" default="-2.0"/>
+  <arg name="upperBoundZ" default="1.0"/>
 
   <node pkg="joy" exec="joy_node" name="ps3_joy" output="screen" >
     <param name="dev" value="/dev/input/js0" />
@@ -36,10 +40,10 @@
   <include file="$(find-pkg-share terrain_analysis_ext)/launch/terrain_analysis_ext.launch" >
     <arg name="checkTerrainConn" value="$(var checkTerrainConn)"/>
     <arg name="vehicleHeight" value="$(var vehicleHeight)"/>
-    <param name="minRelZ" value="-1.0" />
-    <param name="maxRelZ" value="0.5" />
-    <param name="lowerBoundZ" value="-2.0" />
-    <param name="upperBoundZ" value="1.0" />
+    <arg name="minRelZ" value="$(var minRelZ)"/>
+    <arg name="maxRelZ" value="$(var maxRelZ)"/>
+    <arg name="lowerBoundZ" value="$(var lowerBoundZ)"/>
+    <arg name="upperBoundZ" value="$(var upperBoundZ)"/>
   </include>
 
   <!-- <include file="$(find-pkg-share sensor_scan_generation)/launch/sensor_scan_generation.launch" /> -->
