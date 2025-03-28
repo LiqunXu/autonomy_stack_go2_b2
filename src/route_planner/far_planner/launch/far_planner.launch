@@ -10,7 +10,7 @@ import launch_ros
 
 def generate_launch_description():
     return LaunchDescription([
-        SetParameter(name='use_sim_time', value='false'),
+        SetParameter(name='use_sim_time', value=false),
         DeclareLaunchArgument('config', default_value='default'),
 
         Node(
