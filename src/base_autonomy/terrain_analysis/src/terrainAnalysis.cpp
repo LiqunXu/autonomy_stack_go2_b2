@@ -35,6 +35,9 @@
 using namespace std;
 
 const double PI = 3.1415926;
+// Global tf2 buffer and listener pointers.
+std::shared_ptr<tf2_ros::Buffer> tfBufferPtr;
+std::shared_ptr<tf2_ros::TransformListener> tfListenerPtr;
 
 double scanVoxelSize = 0.05;
 double decayTime = 2.0;
@@ -153,12 +156,63 @@ pcl::VoxelGrid<pcl::PointXYZI> downSizeFilter;
 //   }
 // }
 
-// State estimation callback function
-void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
-  // Look up the transform from "camera_init" to "map" at the time of the odometry message
+// Registered laser scan callback function
+void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laserCloud2) {
+  // Look up the transform from "camera_init" to "map"
   geometry_msgs::msg::TransformStamped transformStamped;
   try {
-    transformStamped = tfBuffer.lookupTransform("map", "camera_init",
+    transformStamped = tfBufferPtr->lookupTransform("map", "camera_init",
+                                                laserCloud2->header.stamp, rclcpp::Duration(0.1));
+  } catch (tf2::TransformException &ex) {
+    RCLCPP_WARN(rclcpp::get_logger("terrainAnalysis"), "Transform from camera_init to map failed: %s", ex.what());
+    return;
+  }
+  
+  // Transform the incoming point cloud into the "map" frame
+  sensor_msgs::msg::PointCloud2 cloudInMap;
+  tf2::doTransform(*laserCloud2, cloudInMap, transformStamped);
+
+  laserCloudTime = rclcpp::Time(cloudInMap.header.stamp).seconds();
+  if (!systemInited) {
+    systemInitTime = laserCloudTime;
+    systemInited = true;
+  }
+
+  laserCloud->clear();
+  pcl::fromROSMsg(cloudInMap, *laserCloud);
+
+  pcl::PointXYZI point;
+  laserCloudCrop->clear();
+  int laserCloudSize = laserCloud->points.size();
+  for (int i = 0; i < laserCloudSize; i++) {
+    point = laserCloud->points[i];
+
+    float pointX = point.x;
+    float pointY = point.y;
+    float pointZ = point.z;
+
+    float dis = sqrt((pointX - vehicleX) * (pointX - vehicleX) +
+                     (pointY - vehicleY) * (pointY - vehicleY));
+    if (pointZ - vehicleZ > minRelZ - disRatioZ * dis &&
+        pointZ - vehicleZ < maxRelZ + disRatioZ * dis &&
+        dis < terrainVoxelSize * (terrainVoxelHalfWidth + 1)) {
+      point.x = pointX;
+      point.y = pointY;
+      point.z = pointZ;
+      point.intensity = laserCloudTime - systemInitTime;
+      laserCloudCrop->push_back(point);
+    }
+  }
+
+  newlaserCloud = true;
+}
+
+// State estimation callback function
+void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
+  // Look up the transform from "camera_init" to "map"
+  geometry_msgs::msg::TransformStamped transformStamped;
+  try {
+    transformStamped = tfBufferPtr->lookupTransform("map", "camera_init",
                                                 odom->header.stamp, rclcpp::Duration(0.1));
   } catch (tf2::TransformException &ex) {
     RCLCPP_WARN(rclcpp::get_logger("terrainAnalysis"), "Transform from camera_init to map failed: %s", ex.what());
@@ -201,6 +255,7 @@ void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
   }
 }
 
+
 // // registered laser scan callback function
 // void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laserCloud2) {
 //   laserCloudTime = rclcpp::Time(laserCloud2->header.stamp).seconds();
@@ -238,57 +293,7 @@ void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
 //   newlaserCloud = true;
 // }
 
-// Registered laser scan callback function
-void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laserCloud2) {
-  // Look up the transform from "camera_init" to "map" at the time of the scan
-  geometry_msgs::msg::TransformStamped transformStamped;
-  try {
-    transformStamped = tfBuffer.lookupTransform("map", "camera_init",
-                                                laserCloud2->header.stamp, rclcpp::Duration(0.1));
-  } catch (tf2::TransformException &ex) {
-    RCLCPP_WARN(rclcpp::get_logger("terrainAnalysis"), "Transform from camera_init to map failed: %s", ex.what());
-    return;
-  }
-  
-  // Transform the incoming point cloud into the "map" frame
-  sensor_msgs::msg::PointCloud2 cloudInMap;
-  tf2::doTransform(*laserCloud2, cloudInMap, transformStamped);
 
-  // Use the transformed point cloud (cloudInMap) for further processing
-  laserCloudTime = rclcpp::Time(cloudInMap.header.stamp).seconds();
-  if (!systemInited) {
-    systemInitTime = laserCloudTime;
-    systemInited = true;
-  }
-
-  laserCloud->clear();
-  pcl::fromROSMsg(cloudInMap, *laserCloud);
-
-  pcl::PointXYZI point;
-  laserCloudCrop->clear();
-  int laserCloudSize = laserCloud->points.size();
-  for (int i = 0; i < laserCloudSize; i++) {
-    point = laserCloud->points[i];
-
-    float pointX = point.x;
-    float pointY = point.y;
-    float pointZ = point.z;
-
-    float dis = sqrt((pointX - vehicleX) * (pointX - vehicleX) +
-                     (pointY - vehicleY) * (pointY - vehicleY));
-    if (pointZ - vehicleZ > minRelZ - disRatioZ * dis &&
-        pointZ - vehicleZ < maxRelZ + disRatioZ * dis &&
-        dis < terrainVoxelSize * (terrainVoxelHalfWidth + 1)) {
-      point.x = pointX;
-      point.y = pointY;
-      point.z = pointZ;
-      point.intensity = laserCloudTime - systemInitTime;
-      laserCloudCrop->push_back(point);
-    }
-  }
-
-  newlaserCloud = true;
-}
 
 // joystick callback function
 void joystickHandler(const sensor_msgs::msg::Joy::ConstSharedPtr joy) {
@@ -308,6 +313,10 @@ void clearingHandler(const std_msgs::msg::Float32::ConstSharedPtr dis) {
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
   auto nh = rclcpp::Node::make_shared("terrainAnalysis");
+
+  // Initialize the tf2 buffer and listener using the node's clock.
+  tfBufferPtr = std::make_shared<tf2_ros::Buffer>(node->get_clock());
+  tfListenerPtr = std::make_shared<tf2_ros::TransformListener>(*tfBufferPtr);
 
   nh->declare_parameter<double>("scanVoxelSize", scanVoxelSize);
   nh->declare_parameter<double>("decayTime", decayTime);
