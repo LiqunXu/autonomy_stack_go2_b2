@@ -822,7 +822,7 @@ int main(int argc, char **argv) {
     rate.sleep();
   }
   rclcpp::spin(nh);
-  rclcpp::shutdown()
+  rclcpp::shutdown();
 
   return 0;
 }
