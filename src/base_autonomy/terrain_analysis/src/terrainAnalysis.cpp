@@ -80,6 +80,7 @@ const int planarVoxelWidth = 51;
 int planarVoxelHalfWidth = (planarVoxelWidth - 1) / 2;
 const int planarVoxelNum = planarVoxelWidth * planarVoxelWidth;
 
+// creates a dynamically allocated point cloud and stores it in a smart pointer named laserCloud
 pcl::PointCloud<pcl::PointXYZI>::Ptr
     laserCloud(new pcl::PointCloud<pcl::PointXYZI>());
 pcl::PointCloud<pcl::PointXYZI>::Ptr
@@ -117,9 +118,11 @@ float sinVehicleYaw = 0, cosVehicleYaw = 0;
 pcl::VoxelGrid<pcl::PointXYZI> downSizeFilter;
 
 // state estimation callback function
+// The parameter odom is a constant shared pointer to the received odometry message.
 void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
   double roll, pitch, yaw;
   geometry_msgs::msg::Quaternion geoQuat = odom->pose.pose.orientation;
+  // converts the quaternion to a rotation matrix and then extracts the roll, pitch, and yaw angles
   tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w))
       .getRPY(roll, pitch, yaw);
 
@@ -137,6 +140,7 @@ void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
   sinVehicleYaw = sin(vehicleYaw);
   cosVehicleYaw = cos(vehicleYaw);
 
+  // indicating this is the first odometry message received
   if (noDataInited == 0) {
     vehicleXRec = vehicleX;
     vehicleYRec = vehicleY;
@@ -151,14 +155,17 @@ void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
 }
 
 // registered laser scan callback function
+// This is the callback function that gets called every time a new laser scan (point cloud) message is received on the /registered_scan topic. 
+// The message is received as a shared pointer to a sensor_msgs::msg::PointCloud2 object.
 void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laserCloud2) {
   laserCloudTime = rclcpp::Time(laserCloud2->header.stamp).seconds();
   if (!systemInited) {
     systemInitTime = laserCloudTime;
     systemInited = true;
   }
-
+  // clears any existing points from the point cloud object pointed to by laserCloud
   laserCloud->clear();
+  // takes the message pointed to by laserCloud2 and fills the PCL point cloud laserCloud with the corresponding points.
   pcl::fromROSMsg(*laserCloud2, *laserCloud);
 
   pcl::PointXYZI point;
@@ -203,9 +210,13 @@ void clearingHandler(const std_msgs::msg::Float32::ConstSharedPtr dis) {
 }
 
 int main(int argc, char **argv) {
+  // Initializes the ROS2 system with any command‐line arguments
   rclcpp::init(argc, argv);
+  // A shared pointer to a new node is created with the name "terrainAnalysis". 
+  // This node handle (nh) is used to create publishers, subscribers, and declare parameters.
   auto nh = rclcpp::Node::make_shared("terrainAnalysis");
 
+  // Each declare_parameter call sets up a parameter (with a default value defined in your global variables). 
   nh->declare_parameter<double>("scanVoxelSize", scanVoxelSize);
   nh->declare_parameter<double>("decayTime", decayTime);
   nh->declare_parameter<double>("noDecayDis", noDecayDis);
@@ -238,6 +249,8 @@ int main(int argc, char **argv) {
   nh->declare_parameter<double>("maxRelZ", maxRelZ);
   nh->declare_parameter<double>("disRatioZ", disRatioZ);
 
+  // These lines update your local variables with the values provided by the user (or the default if not overridden). 
+  // This allows your node to be configurable via launch files or command-line parameters.
   nh->get_parameter("scanVoxelSize", scanVoxelSize);
   nh->get_parameter("decayTime", decayTime);
   nh->get_parameter("noDecayDis", noDecayDis);
@@ -270,6 +283,8 @@ int main(int argc, char **argv) {
   nh->get_parameter("maxRelZ", maxRelZ);
   nh->get_parameter("disRatioZ", disRatioZ);
 
+  // This subscribes to the /state_estimation topic (which publishes odometry messages). 
+  // The callback function odometryHandler will be invoked for each incoming message. The queue size is set to 5.
   auto subOdometry = nh->create_subscription<nav_msgs::msg::Odometry>("/state_estimation", 5, odometryHandler);
 
   auto subLaserCloud = nh->create_subscription<sensor_msgs::msg::PointCloud2>("/registered_scan", 5, laserCloudHandler);
@@ -279,16 +294,22 @@ int main(int argc, char **argv) {
   auto subClearing = nh->create_subscription<std_msgs::msg::Float32>("/map_clearing", 5, clearingHandler);
 
   auto pubLaserCloud = nh->create_publisher<sensor_msgs::msg::PointCloud2>("/terrain_map", 2);
-
+  // The reset method replaces the current pointer with a new pointer that points to a freshly allocated pcl::PointCloud<pcl::PointXYZI>
   for (int i = 0; i < terrainVoxelNum; i++) {
     terrainVoxelCloud[i].reset(new pcl::PointCloud<pcl::PointXYZI>());
   }
 
+  // This method defines the size of each voxel along the x, y, and z axes. 
+  // Every point falling into the same voxel is combined (typically by averaging their positions), and only one representative point is kept.
   downSizeFilter.setLeafSize(scanVoxelSize, scanVoxelSize, scanVoxelSize);
 
+  // A rate object is created to run the main loop at 100 Hz.
   rclcpp::Rate rate(100);
+  // he loop runs as long as ROS2 is operational (i.e. rclcpp::ok() returns true).
   bool status = rclcpp::ok();
   while (status) {
+    // spin_some processes any pending callbacks (from the subscriptions) without blocking. 
+    // This means that if new odometry, point cloud, or joystick messages have arrived, their callbacks will be executed.
     rclcpp::spin_some(nh);
     if (newlaserCloud) {
       newlaserCloud = false;
@@ -697,11 +718,36 @@ int main(int argc, char **argv) {
       clearingCloud = false;
 
       // publish points with elevation
-      sensor_msgs::msg::PointCloud2 terrainCloud2;
-      pcl::toROSMsg(*terrainCloudElev, terrainCloud2);
-      terrainCloud2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserCloudTime * 1e9));
-      terrainCloud2.header.frame_id = "map";
-      pubLaserCloud->publish(terrainCloud2);
+      // sensor_msgs::msg::PointCloud2 terrainCloud2;
+      // pcl::toROSMsg(*terrainCloudElev, terrainCloud2);
+      // terrainCloud2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserCloudTime * 1e9));
+      // terrainCloud2.header.frame_id = "camera_init";
+      // pubLaserCloud->publish(terrainCloud2);
+      // Convert the final processed terrain cloud (terrainCloudElev) into a ROS message,
+      
+      sensor_msgs::msg::PointCloud2 terrainCloudCameraInit;
+      pcl::toROSMsg(*terrainCloudElev, terrainCloudCameraInit);
+      terrainCloudCameraInit.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserCloudTime * 1e9));
+      terrainCloudCameraInit.header.frame_id = "camera_init";
+
+      // Look up the transform from "camera_init" to "map"
+      geometry_msgs::msg::TransformStamped transformStamped;
+      try {
+        transformStamped = tfBufferPtr->lookupTransform("map", "camera_init",
+                                                        terrainCloudCameraInit.header.stamp, rclcpp::Duration(0.1));
+      } catch (tf2::TransformException &ex) {
+        RCLCPP_WARN(nh->get_logger(), "Transform lookup failed: %s", ex.what());
+        // Optionally publish the cloud in camera_init frame if transform fails, or skip publishing.
+        return 0;  // or continue; based on your design
+      }
+
+      // Transform the terrain cloud into the "map" frame
+      sensor_msgs::msg::PointCloud2 terrainCloudMap;
+      tf2::doTransform(terrainCloudCameraInit, terrainCloudMap, transformStamped);
+
+      // Publish the terrain map in the "map" frame
+      pubLaserCloud->publish(terrainCloudMap);
+
     }
 
     // status = ros::ok();
