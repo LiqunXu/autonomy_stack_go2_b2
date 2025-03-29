@@ -29,15 +29,9 @@
 #include "rmw/types.h"
 #include "rmw/qos_profiles.h"
 
-#include <tf2_ros/transform_listener.h>
-
-
 using namespace std;
 
 const double PI = 3.1415926;
-// Global tf2 buffer and listener pointers.
-std::shared_ptr<tf2_ros::Buffer> tfBufferPtr;
-std::shared_ptr<tf2_ros::TransformListener> tfListenerPtr;
 
 double scanVoxelSize = 0.05;
 double decayTime = 2.0;
@@ -122,105 +116,50 @@ float sinVehicleYaw = 0, cosVehicleYaw = 0;
 
 pcl::VoxelGrid<pcl::PointXYZI> downSizeFilter;
 
-// // state estimation callback function
-// void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
-//   double roll, pitch, yaw;
-//   geometry_msgs::msg::Quaternion geoQuat = odom->pose.pose.orientation;
-//   tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w))
-//       .getRPY(roll, pitch, yaw);
+// state estimation callback function
+void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
+  double roll, pitch, yaw;
+  geometry_msgs::msg::Quaternion geoQuat = odom->pose.pose.orientation;
+  tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w))
+      .getRPY(roll, pitch, yaw);
 
-//   vehicleRoll = roll;
-//   vehiclePitch = pitch;
-//   vehicleYaw = yaw;
-//   vehicleX = odom->pose.pose.position.x;
-//   vehicleY = odom->pose.pose.position.y;
-//   vehicleZ = odom->pose.pose.position.z;
+  vehicleRoll = roll;
+  vehiclePitch = pitch;
+  vehicleYaw = yaw;
+  vehicleX = odom->pose.pose.position.x;
+  vehicleY = odom->pose.pose.position.y;
+  vehicleZ = odom->pose.pose.position.z;
 
-//   sinVehicleRoll = sin(vehicleRoll);
-//   cosVehicleRoll = cos(vehicleRoll);
-//   sinVehiclePitch = sin(vehiclePitch);
-//   cosVehiclePitch = cos(vehiclePitch);
-//   sinVehicleYaw = sin(vehicleYaw);
-//   cosVehicleYaw = cos(vehicleYaw);
+  sinVehicleRoll = sin(vehicleRoll);
+  cosVehicleRoll = cos(vehicleRoll);
+  sinVehiclePitch = sin(vehiclePitch);
+  cosVehiclePitch = cos(vehiclePitch);
+  sinVehicleYaw = sin(vehicleYaw);
+  cosVehicleYaw = cos(vehicleYaw);
 
-//   if (noDataInited == 0) {
-//     vehicleXRec = vehicleX;
-//     vehicleYRec = vehicleY;
-//     noDataInited = 1;
-//   }
-//   if (noDataInited == 1) {
-//     float dis = sqrt((vehicleX - vehicleXRec) * (vehicleX - vehicleXRec) +
-//                      (vehicleY - vehicleYRec) * (vehicleY - vehicleYRec));
-//     if (dis >= noDecayDis)
-//       noDataInited = 2;
-//   }
-// }
-
-
-
-
-// // registered laser scan callback function
-// void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laserCloud2) {
-//   laserCloudTime = rclcpp::Time(laserCloud2->header.stamp).seconds();
-//   if (!systemInited) {
-//     systemInitTime = laserCloudTime;
-//     systemInited = true;
-//   }
-
-//   laserCloud->clear();
-//   pcl::fromROSMsg(*laserCloud2, *laserCloud);
-
-//   pcl::PointXYZI point;
-//   laserCloudCrop->clear();
-//   int laserCloudSize = laserCloud->points.size();
-//   for (int i = 0; i < laserCloudSize; i++) {
-//     point = laserCloud->points[i];
-
-//     float pointX = point.x;
-//     float pointY = point.y;
-//     float pointZ = point.z;
-
-//     float dis = sqrt((pointX - vehicleX) * (pointX - vehicleX) +
-//                      (pointY - vehicleY) * (pointY - vehicleY));
-//     if (pointZ - vehicleZ > minRelZ - disRatioZ * dis &&
-//         pointZ - vehicleZ < maxRelZ + disRatioZ * dis &&
-//         dis < terrainVoxelSize * (terrainVoxelHalfWidth + 1)) {
-//       point.x = pointX;
-//       point.y = pointY;
-//       point.z = pointZ;
-//       point.intensity = laserCloudTime - systemInitTime;
-//       laserCloudCrop->push_back(point);
-//     }
-//   }
-
-//   newlaserCloud = true;
-// }
-
-// --- Callbacks (as modified) ---
-// Registered laser scan callback function
-void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laserCloud2) {
-  // Look up the transform from "camera_init" to "map"
-  geometry_msgs::msg::TransformStamped transformStamped;
-  try {
-    transformStamped = tfBufferPtr->lookupTransform("map", "camera_init",
-                                                laserCloud2->header.stamp, rclcpp::Duration(0.1));
-  } catch (tf2::TransformException &ex) {
-    RCLCPP_WARN(rclcpp::get_logger("terrainAnalysis"), "Transform from camera_init to map failed: %s", ex.what());
-    return;
+  if (noDataInited == 0) {
+    vehicleXRec = vehicleX;
+    vehicleYRec = vehicleY;
+    noDataInited = 1;
   }
-  
-  // Transform the incoming point cloud into the "map" frame
-  sensor_msgs::msg::PointCloud2 cloudInMap;
-  tf2::doTransform(*laserCloud2, cloudInMap, transformStamped);
+  if (noDataInited == 1) {
+    float dis = sqrt((vehicleX - vehicleXRec) * (vehicleX - vehicleXRec) +
+                     (vehicleY - vehicleYRec) * (vehicleY - vehicleYRec));
+    if (dis >= noDecayDis)
+      noDataInited = 2;
+  }
+}
 
-  laserCloudTime = rclcpp::Time(cloudInMap.header.stamp).seconds();
+// registered laser scan callback function
+void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laserCloud2) {
+  laserCloudTime = rclcpp::Time(laserCloud2->header.stamp).seconds();
   if (!systemInited) {
     systemInitTime = laserCloudTime;
     systemInited = true;
   }
 
   laserCloud->clear();
-  pcl::fromROSMsg(cloudInMap, *laserCloud);
+  pcl::fromROSMsg(*laserCloud2, *laserCloud);
 
   pcl::PointXYZI point;
   laserCloudCrop->clear();
@@ -248,54 +187,6 @@ void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laser
   newlaserCloud = true;
 }
 
-// State estimation callback function
-void odometryHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom) {
-  // Look up the transform from "camera_init" to "map"
-  geometry_msgs::msg::TransformStamped transformStamped;
-  try {
-    transformStamped = tfBufferPtr->lookupTransform("map", "camera_init",
-                                                odom->header.stamp, rclcpp::Duration(0.1));
-  } catch (tf2::TransformException &ex) {
-    RCLCPP_WARN(rclcpp::get_logger("terrainAnalysis"), "Transform from camera_init to map failed: %s", ex.what());
-    return;
-  }
-  
-  // Transform the odometry message into the "map" frame
-  nav_msgs::msg::Odometry odomInMap;
-  tf2::doTransform(*odom, odomInMap, transformStamped);
-
-  double roll, pitch, yaw;
-  geometry_msgs::msg::Quaternion geoQuat = odomInMap.pose.pose.orientation;
-  tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w))
-      .getRPY(roll, pitch, yaw);
-
-  vehicleRoll = roll;
-  vehiclePitch = pitch;
-  vehicleYaw = yaw;
-  vehicleX = odomInMap.pose.pose.position.x;
-  vehicleY = odomInMap.pose.pose.position.y;
-  vehicleZ = odomInMap.pose.pose.position.z;
-
-  sinVehicleRoll = sin(vehicleRoll);
-  cosVehicleRoll = cos(vehicleRoll);
-  sinVehiclePitch = sin(vehiclePitch);
-  cosVehiclePitch = cos(vehiclePitch);
-  sinVehicleYaw = sin(vehicleYaw);
-  cosVehicleYaw = cos(vehicleYaw);
-
-  if (noDataInited == 0) {
-    vehicleXRec = vehicleX;
-    vehicleYRec = vehicleY;
-    noDataInited = 1;
-  }
-  if (noDataInited == 1) {
-    float dis = sqrt((vehicleX - vehicleXRec) * (vehicleX - vehicleXRec) +
-                     (vehicleY - vehicleYRec) * (vehicleY - vehicleYRec));
-    if (dis >= noDecayDis)
-      noDataInited = 2;
-  }
-}
-
 // joystick callback function
 void joystickHandler(const sensor_msgs::msg::Joy::ConstSharedPtr joy) {
   if (joy->buttons[5] > 0.5) {
@@ -314,10 +205,6 @@ void clearingHandler(const std_msgs::msg::Float32::ConstSharedPtr dis) {
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
   auto nh = rclcpp::Node::make_shared("terrainAnalysis");
-
-  // Initialize the tf2 buffer and listener using the node's clock.
-  tfBufferPtr = std::make_shared<tf2_ros::Buffer>(nh->get_clock());
-  tfListenerPtr = std::make_shared<tf2_ros::TransformListener>(*tfBufferPtr);
 
   nh->declare_parameter<double>("scanVoxelSize", scanVoxelSize);
   nh->declare_parameter<double>("decayTime", decayTime);
@@ -610,7 +497,7 @@ int main(int argc, char **argv) {
 
                 float dis4 = sqrt(pointX4 * pointX4 + pointY4 * pointY4);
                 float angle4 = atan2(pointZ4, dis4) * 180.0 / PI;
-                if ((angle4 > minDyObsVFOV && angle4 < maxDyObsVFOV) || fabs(pointZ4) < absDyObsRelZThre) {
+                if (angle4 > minDyObsVFOV && angle4 < maxDyObsVFOV || fabs(pointZ4) < absDyObsRelZThre) {
                   planarVoxelDyObs[planarVoxelWidth * indX + indY]++;
                 }
               }
@@ -821,8 +708,6 @@ int main(int argc, char **argv) {
     status = rclcpp::ok();
     rate.sleep();
   }
-  rclcpp::spin(nh);
-  rclcpp::shutdown();
 
   return 0;
 }
