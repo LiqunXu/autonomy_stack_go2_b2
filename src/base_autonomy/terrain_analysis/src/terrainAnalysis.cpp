@@ -29,7 +29,7 @@
 #include "rmw/types.h"
 #include "rmw/qos_profiles.h"
 #include <tf2_ros/transform_listener.h>
-#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+
 
 
 
@@ -37,9 +37,6 @@
 
 using namespace std;
 
-// Declare global pointers for the TF2 buffer and listener
-std::shared_ptr<tf2_ros::Buffer> tfBufferPtr;
-std::shared_ptr<tf2_ros::TransformListener> tfListenerPtr;
 
 const double PI = 3.1415926;
 
@@ -225,9 +222,6 @@ int main(int argc, char **argv) {
   // A shared pointer to a new node is created with the name "terrainAnalysis". 
   // This node handle (nh) is used to create publishers, subscribers, and declare parameters.
   auto nh = rclcpp::Node::make_shared("terrainAnalysis");
-  // Declare global pointers for the TF2 buffer and listener
-  std::shared_ptr<tf2_ros::Buffer> tfBufferPtr;
-  std::shared_ptr<tf2_ros::TransformListener> tfListenerPtr;
 
   // Each declare_parameter call sets up a parameter (with a default value defined in your global variables). 
   nh->declare_parameter<double>("scanVoxelSize", scanVoxelSize);
@@ -730,36 +724,12 @@ int main(int argc, char **argv) {
 
       clearingCloud = false;
 
-      // publish points with elevation
-      // sensor_msgs::msg::PointCloud2 terrainCloud2;
-      // pcl::toROSMsg(*terrainCloudElev, terrainCloud2);
-      // terrainCloud2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserCloudTime * 1e9));
-      // terrainCloud2.header.frame_id = "camera_init";
-      // pubLaserCloud->publish(terrainCloud2);
-      // Convert the final processed terrain cloud (terrainCloudElev) into a ROS message,
-      
-      sensor_msgs::msg::PointCloud2 terrainCloudCameraInit;
-      pcl::toROSMsg(*terrainCloudElev, terrainCloudCameraInit);
-      terrainCloudCameraInit.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserCloudTime * 1e9));
-      terrainCloudCameraInit.header.frame_id = "camera_init";
-
-      // Look up the transform from "camera_init" to "map"
-      geometry_msgs::msg::TransformStamped transformStamped;
-      try {
-        transformStamped = tfBufferPtr->lookupTransform("map", "camera_init",
-                                                        terrainCloudCameraInit.header.stamp, rclcpp::Duration(0.1));
-      } catch (tf2::TransformException &ex) {
-        RCLCPP_WARN(nh->get_logger(), "Transform lookup failed: %s", ex.what());
-        // Optionally publish the cloud in camera_init frame if transform fails, or skip publishing.
-        return 0;  // or continue; based on your design
-      }
-
-      // Transform the terrain cloud into the "map" frame
-      sensor_msgs::msg::PointCloud2 terrainCloudMap;
-      tf2::doTransform(terrainCloudCameraInit, terrainCloudMap, transformStamped);
-
-      // Publish the terrain map in the "map" frame
-      pubLaserCloud->publish(terrainCloudMap);
+      publish points with elevation
+      sensor_msgs::msg::PointCloud2 terrainCloud2;
+      pcl::toROSMsg(*terrainCloudElev, terrainCloud2);
+      terrainCloud2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserCloudTime * 1e9));
+      terrainCloud2.header.frame_id = "camera_init";
+      pubLaserCloud->publish(terrainCloud2);
 
     }
 
