@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="world_name" default="real_world"/>
-  <arg name="vehicleHeight" default="0.7"/>
+  <arg name="vehicleHeight" default="0.65"/>
   <arg name="sensorOffsetX" default="0.5"/>
   <arg name="sensorOffsetY" default="0.0"/>
   <arg name="cameraOffsetZ" default="0.0"/>
