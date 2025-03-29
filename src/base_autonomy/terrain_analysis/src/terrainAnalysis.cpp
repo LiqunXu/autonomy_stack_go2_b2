@@ -28,8 +28,13 @@
 #include "message_filters/sync_policies/approximate_time.h"
 #include "rmw/types.h"
 #include "rmw/qos_profiles.h"
+#include <tf2_ros/transform_listener.h>
 
 using namespace std;
+
+// Declare global pointers for the TF2 buffer and listener
+std::shared_ptr<tf2_ros::Buffer> tfBufferPtr;
+std::shared_ptr<tf2_ros::TransformListener> tfListenerPtr;
 
 const double PI = 3.1415926;
 
@@ -215,6 +220,9 @@ int main(int argc, char **argv) {
   // A shared pointer to a new node is created with the name "terrainAnalysis". 
   // This node handle (nh) is used to create publishers, subscribers, and declare parameters.
   auto nh = rclcpp::Node::make_shared("terrainAnalysis");
+  // Declare global pointers for the TF2 buffer and listener
+  std::shared_ptr<tf2_ros::Buffer> tfBufferPtr;
+  std::shared_ptr<tf2_ros::TransformListener> tfListenerPtr;
 
   // Each declare_parameter call sets up a parameter (with a default value defined in your global variables). 
   nh->declare_parameter<double>("scanVoxelSize", scanVoxelSize);
@@ -518,7 +526,7 @@ int main(int argc, char **argv) {
 
                 float dis4 = sqrt(pointX4 * pointX4 + pointY4 * pointY4);
                 float angle4 = atan2(pointZ4, dis4) * 180.0 / PI;
-                if (angle4 > minDyObsVFOV && angle4 < maxDyObsVFOV || fabs(pointZ4) < absDyObsRelZThre) {
+                if ((angle4 > minDyObsVFOV && angle4 < maxDyObsVFOV) || fabs(pointZ4) < absDyObsRelZThre) {
                   planarVoxelDyObs[planarVoxelWidth * indX + indY]++;
                 }
               }
