@@ -765,3 +765,12 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
+// Explicit instantiation to force the compiler to generate tf2::doTransform for PointCloud2
+namespace tf2 {
+  template void doTransform<sensor_msgs::msg::PointCloud2>(
+      const sensor_msgs::msg::PointCloud2 & in,
+      sensor_msgs::msg::PointCloud2 & out,
+      const geometry_msgs::msg::TransformStamped & transform);
+}
+
