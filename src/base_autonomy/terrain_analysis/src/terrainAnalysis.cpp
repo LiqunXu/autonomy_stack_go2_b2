@@ -30,6 +30,7 @@
 #include "rmw/qos_profiles.h"
 #include <tf2_ros/transform_listener.h>
 
+
 using namespace std;
 
 // Declare global pointers for the TF2 buffer and listener
@@ -766,11 +767,4 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-// Explicit instantiation to force the compiler to generate tf2::doTransform for PointCloud2
-namespace tf2 {
-  template void doTransform<sensor_msgs::msg::PointCloud2>(
-      const sensor_msgs::msg::PointCloud2 & in,
-      sensor_msgs::msg::PointCloud2 & out,
-      const geometry_msgs::msg::TransformStamped & transform);
-}
 
